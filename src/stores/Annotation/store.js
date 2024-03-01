@@ -203,82 +203,6 @@ const AnnotationStoreModel = types
       self.names.put(node);
     }
 
-    function updateLabels(labelConfig){
-      // convert config to mst model
-      let rootModel;
-
-      try {
-        rootModel = Tree.treeToModel(labelConfig, self.store);
-      } catch (e) {
-        console.error(e);
-        return showError(e);
-      }
-
-      const modelClass = Registry.getModelByTag(rootModel.type);
-      // hacky way to get all the available object tag names
-      const objectTypes = Registry.objectTypes().map(type => type.name.replace('Model', '').toLowerCase());
-      const objects = [];
-
-      rootModel.children = rootModel.children?.map(child => ({ ...child, parent: rootModel.id}))
-
-      // self.validate(VALIDATORS.CONFIG, rootModel);
-      try {
-        // if (self.root.children[2].children && self.root.children[2].children.length)
-        //   self.root.children[2].children.push(rootModel);
-        // else
-        //   self.root.children[2].children = [rootModel];
-        self.root.children[2] = getSnapshot(modelClass.create(rootModel));
-      } catch (e) {
-        console.error(e);
-        err = showError(e);
-        return err;
-      }
-      if (isFF(FF_DEV_3391)) {
-        // initialize toName bindings [DOCS] name & toName are used to
-        // connect different components to each other
-        const { names, toNames } = Tree.extractNames(self.root);
-
-        names.forEach(tag => self.names.put(tag));
-        toNames.forEach((tags, name) => self.toNames.set(name, tags));
-
-        Tree.traverseTree(self.root, node => {
-          if (self.store.task && node.updateValue) node.updateValue(self.store);
-        });
-
-        self.initialized = true;
-
-        return self.root;
-      }
-      // initialize toName bindings [DOCS] name & toName are used to
-      // connect different components to each other
-      Tree.traverseTree(self.root, node => {
-        if (node?.name) {
-          self.addName(node);
-          if (objectTypes.includes(node.type)) objects.push(node.name);
-        }
-
-        const isControlTag = node.name && !objectTypes.includes(node.type);
-
-        // auto-infer missed toName if there is only one object tag in the config
-        if (isControlTag && !node.toname && objects.length === 1) {
-          node.toname = objects[0];
-        }
-
-        if (node && node.toname) {
-          self.upsertToName(node);
-        }
-
-        if (self.store.task && node.updateValue) node.updateValue(self.store);
-      });
-
-      self.initialized = true;
-
-      self.selected.setupHotKeys();
-
-      return self.root;
-
-    }
-
     function initRoot(config) {
       if (self.root) return;
 
@@ -419,6 +343,61 @@ const AnnotationStoreModel = types
 
       self.initialized = true;
 
+      return self.root;
+    }
+
+    function updateLabels(labelConfig){
+      // convert config to mst model
+      let rootModel;
+      try {
+        rootModel = Tree.treeToModel(labelConfig, self.store);
+      } catch (e) {
+        console.error(e);
+        return showError(e);
+      }
+      const modelClass = Registry.getModelByTag(rootModel.type);
+      // hacky way to get all the available object tag names
+      const objectTypes = Registry.objectTypes().map(type => type.name.replace('Model', '').toLowerCase());
+      const objects = [];
+      rootModel.children = rootModel.children?.map(child => ({ ...child, parent: rootModel.id}))
+      try {
+        self.root.children[2] = getSnapshot(modelClass.create(rootModel));
+      } catch (e) {
+        console.error(e);
+        err = showError(e);
+        return err;
+      }
+      if (isFF(FF_DEV_3391)) {
+        // initialize toName bindings [DOCS] name & toName are used to
+        // connect different components to each other
+        const { names, toNames } = Tree.extractNames(self.root);
+        names.forEach(tag => self.names.put(tag));
+        toNames.forEach((tags, name) => self.toNames.set(name, tags));
+        Tree.traverseTree(self.root, node => {
+          if (self.store.task && node.updateValue) node.updateValue(self.store);
+        });
+        self.initialized = true;
+        return self.root;
+      }
+      // initialize toName bindings [DOCS] name & toName are used to
+      // connect different components to each other
+      Tree.traverseTree(self.root, node => {
+        if (node?.name) {
+          self.addName(node);
+          if (objectTypes.includes(node.type)) objects.push(node.name);
+        }
+        const isControlTag = node.name && !objectTypes.includes(node.type);
+        // auto-infer missed toName if there is only one object tag in the config
+        if (isControlTag && !node.toname && objects.length === 1) {
+          node.toname = objects[0];
+        }
+        if (node && node.toname) {
+          self.upsertToName(node);
+        }
+        if (self.store.task && node.updateValue) node.updateValue(self.store);
+      });
+      // self.initialized = true;
+      self.selected.setupHotKeys();
       return self.root;
     }
 
