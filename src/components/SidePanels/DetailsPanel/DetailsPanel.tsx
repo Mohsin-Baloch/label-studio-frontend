@@ -119,7 +119,7 @@ const InfoTab: FC<any> = inject('store')(
       <>
         <Block name="info">
           <Elem name="section-tab">
-            <Elem name="section-head">Selection Details</Elem>
+            <Elem name="section-head">Selection Detailssss</Elem>
             <RegionsPanel regions={selection}/>
           </Elem>
         </Block>
