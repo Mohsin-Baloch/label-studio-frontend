@@ -48,11 +48,14 @@ import { SidebarTabs } from '../SidebarTabs/SidebarTabs';
 import { SidePanels } from '../SidePanels/SidePanels';
 import { SideTabsPanels } from '../SidePanels/TabPanels/SideTabsPanels';
 import { TopBar } from '../TopBar/TopBar';
+import { onSnapshot } from "mobx-state-tree"
 
 /**
  * Styles
  */
 import './App.styl';
+import { observable } from 'mobx';
+// import { observable } from 'mobx';
 
 /**
  * App
@@ -61,10 +64,28 @@ class App extends Component {
   relationsRef = React.createRef();
 
   componentDidMount() {
-    // Hack to activate app hotkeys
     window.blur();
     document.body.focus();
   }
+
+  // componentDidUpdate(prevProps){
+  //   console.log("current store", this.props.store, {...this.props.store}, Object.keys(this.props.store))
+  //   console.log("prevProps store", prevProps.store, {...prevProps.store}, Object.keys(prevProps.store))
+  //   // this.render();
+  //   const store = this.props.store;
+  //   const as = store.annotationStore;
+  //   const root = as.selected && as.selected.root;
+  //   const somView = <Annotation root={root} annotation={as.selected} />
+  // }
+
+  // shouldComponentUpdate(nextProps, nextState){
+  //   console.log("-----------------------------------------------------------------------------------")
+  //   console.log("current store", this.props.store, {...this.props.store}, Object.keys(this.props.store))
+  //   console.log("nextProps store", nextProps.store, {...nextProps.store}, Object.keys(nextProps.store))
+  //   console.log("App Component ShouldUpdate")
+  //   console.log("-----------------------------------------------------------------------------------")
+  //   return true
+  // }
 
   renderSuccess() {
     return <Block name="editor"><Result status="success" title={getEnv(this.props.store).messages.DONE} /></Block>;
@@ -127,7 +148,7 @@ class App extends Component {
       <div className="ls-renderall">
         {obj.map((c, i) => (
           <div key={`all-${i}`} className="ls-fade">
-            <Segment annotation={c}>{[Tree.renderItem(c.root)]}</Segment>
+            <Segment id={`segment-for-${i}`} annotation={c}>{[Tree.renderItem(c.root)]}</Segment>
           </div>
         ))}
       </div>
@@ -136,14 +157,14 @@ class App extends Component {
 
   _renderUI(root, as) {
     if (as.viewingAll) return this.renderAllAnnotations();
-
     return (
       <Block
+        id="main-view-block"
         key={(as.selectedHistory ?? as.selected)?.id}
         name="main-view"
         onScrollCapture={this._notifyScroll}
       >
-        <Elem name="annotation">
+        <Elem id="annotations-element" name="annotation">
           {<Annotation root={root} annotation={as.selected} />}
           {this.renderRelations(as.selected)}
         </Elem>
@@ -159,7 +180,7 @@ class App extends Component {
     const { id, queue } = getRoot(as).task;
 
     return (
-      <Elem name="infobar" tag={Space} size="small">
+      <Elem id="info-bar-elem" name="infobar" tag={Space} size="small">
         <span>Task #{id}</span>
 
         {queue && <span>{queue}</span>}
@@ -176,7 +197,7 @@ class App extends Component {
       sortAnnotations(entities);
     }
 
-    return <Grid store={as} annotations={entities} root={as.root} />;
+    return <Grid id="all-annotations-grid" store={as} annotations={entities} root={as.root} />;
   }
 
   renderRelations(selectedStore) {
@@ -196,10 +217,21 @@ class App extends Component {
 
   render() {
     const { store } = this.props;
+    const asOb = observable.box(store)?.get(store);
     const as = store.annotationStore;
     const root = as.selected && as.selected.root;
     const { settings } = store;
 
+    // console.log("asOb", asOb)
+    // console.log("asOb", {...asOb})
+    // console.log("as", as)
+    // console.log("as", {...as})
+    // console.log("as", Object.keys(as))
+    // console.log("store", {...store})
+    // console.log("store", Object.keys(store))
+    // console.log("selected", as.selected)
+    // console.log("root", as.root)
+    
     if (store.isLoading) return this.renderLoader();
 
     if (store.noTask) return this.renderNothingToLabel(store);
@@ -214,7 +246,7 @@ class App extends Component {
 
     // tags can be styled in config when user is awaiting for suggestions from ML backend
     const mainContent = (
-      <Block name="main-content" mix={store.awaitingSuggestions ? ['requesting'] : []}>
+      <Block id="main-content-block" name="main-content" mix={store.awaitingSuggestions ? ['requesting'] : []}>
         {as.validation === null
           ? this._renderUI(as.selectedHistory?.root ?? root, as)
           : this.renderConfigValidationException(store)}
@@ -269,7 +301,9 @@ class App extends Component {
                   showComments={store.hasInterface('annotations:comments')}
                   focusTab={store.commentStore.tooltipMessage ? 'comments' : null}
                 >
+                  <div id="main-content-pane"></div>
                   {mainContent}
+                  <div id="bottom-bar-content-pane"></div>
                   {store.hasInterface('topbar') && <BottomBar store={store} />}
                 </SideTabsPanels>
               ) : (

@@ -30,6 +30,11 @@ import { destroy as destroySharedStore } from '../mixins/SharedChoiceStore/mixin
 
 const hotkeys = Hotkey('AppStore', 'Global Hotkeys');
 
+const tagsObj = types.model({
+  id: types.integer,
+  value: types.optional(types.string, '')
+});
+
 export default types
   .model('AppStore', {
     /**
@@ -37,6 +42,10 @@ export default types
      */
     config: types.string,
 
+    /**
+     * Custom array
+     */
+    labelsData: types.array(tagsObj),
     /**
      * Task with data, id and project
      */
@@ -233,6 +242,19 @@ export default types
   }))
   .actions(self => {
     let appControls;
+
+    function addLabel(labels = []){
+      if(labels.length > 0){
+        self.labelsData = labels;
+      }
+      else {
+        const randomLabel = {
+          id: self.labelsData.length+1,
+          value: `Random Label at ${new Date().getHours()}:${new Date().getMinutes()}:${new Date().getSeconds()}`
+        };
+        self.labelsData.push(randomLabel);
+      }
+    }
 
     function setAppControls(controls) {
       appControls = controls;
@@ -494,6 +516,22 @@ export default types
 
       self.config = config;
       cs.initRoot(self.config);
+    }
+
+    function reAssignConfig(config){
+      destroy(self.annotationStore.root);
+      const cs = self.annotationStore;
+      
+      self.config = config;
+      cs.initRoot(self.config)
+    }
+
+    function reAssignConfigLbl(config){
+      // destroy(self.annotationStore.root);
+      const cs = self.annotationStore;
+      
+      // self.config = config;
+      cs.updateLabels(config)
     }
 
     /* eslint-disable no-unused-vars */
@@ -856,6 +894,8 @@ export default types
     }
 
     return {
+      addLabel,
+
       setFlags,
       addInterface,
       hasInterface,
@@ -864,6 +904,8 @@ export default types
       afterCreate,
       assignTask,
       assignConfig,
+      reAssignConfig,
+      reAssignConfigLbl,
       resetState,
       resetAnnotationStore,
       initializeStore,

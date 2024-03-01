@@ -76,7 +76,7 @@ import { ClassificationMixed } from '../examples/classification_mixed';
  */
 // import { AllTypes } from "../examples/all_types";
 
-const data = ClassificationMixed;
+const data = VideoAudio; // ClassificationMixed;
 
 function getData(task) {
   if (task && task.data) {
@@ -87,6 +87,14 @@ function getData(task) {
   }
 
   return task;
+}
+
+function getState(task) {
+  return {
+    annotations: task?.annotations,
+    completions: task?.completions,
+    predictions: task?.predictions,
+  };
 }
 
 /**
