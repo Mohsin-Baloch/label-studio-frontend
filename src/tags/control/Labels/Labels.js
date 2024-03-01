@@ -153,14 +153,14 @@ const customStyles = {
     justifyContent:'space-between',
     alignItems:'flex-start'
   },
-  labelBtnContainer:{ minWidth:'20%', margin:'1rem' },
+  labelBtnContainer:{ minWidth:'40px', margin:'1rem' },
   flexCol: {
     display: "flex",
     flexDirection: "column",
     justifyContent:'space-between',
     alignItems:'center',
     height: "100%",
-    minHeight: "20rem"
+    minHeight: "25rem"
   },
   formSelect: {
     padding: "1px",
@@ -181,18 +181,15 @@ const customStyles = {
 }
 
 const dummyData = [
-    { id: 1, value: 'Label 1' },
-    { id: 2, value: 'Label 2' },
-    { id: 3, value: 'Label 3' },
-    { id: 4, value: 'Label 4' },
-    { id: 5, value: 'Label 5' },
-    { id: 6, value: 'Label 6' },
-    { id: 7, value: 'Label 7' },
-    { id: 9, value: 'Label 9' },
-    { id: 10, value: 'Label 10' },
-    { id: 11, value: 'Label 11' },
-    { id: 12, value: 'Label 12' },
-    { id: 13, value: 'Label 13' },
+    { id: 1, value: 'pull-up' },
+    { id: 2, value: 'push up' },
+    { id: 3, value: 'push down' },
+    { id: 4, value: 'deadlift-up' },
+    { id: 5, value: 'deadlift-down' },
+    { id: 6, value: 'benchpress-up' },
+    { id: 7, value: 'benchpress-down' },
+    { id: 9, value: 'frontsquat-up' },
+    { id: 10, value: 'frontsquat-down' },
 ];
 
 const HtxLabels = inject('store')(observer(({ item, store }) => {
@@ -203,7 +200,7 @@ const HtxLabels = inject('store')(observer(({ item, store }) => {
   } = store;
 
   const [openLblSelection, setOpenLblSelection] = useState(false);
-  const [labelsSelection, setLabelsSelection] = useState([]);
+  const [labelsSelection, setLabelsSelection] = useState([...(labelsData).map(i => (i.value.toLowerCase))]);
 
   const getUpdatedConfigLbl = (labels) =>{
     // return `<Label key="${labels[labels.length -1].id}" value="${labels[labels.length -1].value}"/>`;
@@ -219,7 +216,7 @@ const HtxLabels = inject('store')(observer(({ item, store }) => {
   }, [labelsData.length])
 
   const getLabelSelectOptions = (data) => {
-    return data.map(item => ({ value: item.id, label: item.value }));
+    return data.map(item => ({ key: item.id, value: item.value.toLowerCase(), label: item.value }));
   };
   const handleLabelSelectionChange = (value) => {
     setLabelsSelection([...value]);
@@ -231,17 +228,16 @@ const HtxLabels = inject('store')(observer(({ item, store }) => {
   const handleApplySelection = () => {
     const labels = [];
     for(let i=0; i< labelsSelection.length; i++){
-      const item = dummyData.find(itm => itm.id === labelsSelection[i] );
+      const item = dummyData.find(itm => itm.value.toLowerCase() === labelsSelection[i] );
       if (item)
       labels.push(item);
     }
     addLabel(labels);
     setOpenLblSelection(false);
-    setLabelsSelection([]);
   };
   const handleDiscardSelection = () =>{
     setOpenLblSelection(false);
-    setLabelsSelection([]);
+    // setLabelsSelection([]);
   };
   return (
     <div style={customStyles.flexRow}>
@@ -249,7 +245,7 @@ const HtxLabels = inject('store')(observer(({ item, store }) => {
       {Tree.renderChildren(item, item.annotation)}
       </Block>
       <div style={customStyles.labelBtnContainer}>
-        <Button type='primary' ghost onClick={handleAddLabel}>Add random Label</Button>
+        <Button type='primary' ghost onClick={handleAddLabel}>Add Label</Button>
       </div>
       <InstructionsModal
         visible={openLblSelection}
@@ -261,7 +257,7 @@ const HtxLabels = inject('store')(observer(({ item, store }) => {
             <label>Select labels to apply:</label>
             <Select
               mode="multiple"
-              size={'large'}
+              size={'middle'}
               placeholder="Please select labels"
               onChange={handleLabelSelectionChange}
               style={{
