@@ -1,5 +1,5 @@
 import { observer } from 'mobx-react';
-import { FC, useEffect, useRef } from 'react';
+import { FC, useEffect, useRef, useState } from 'react';
 import { Hotkey } from '../../../core/Hotkey';
 import { useWaveform } from '../../../lib/AudioUltra/react';
 import { Controls } from '../../../components/Timeline/Controls';
@@ -10,6 +10,8 @@ import { Block } from '../../../utils/bem';
 import { ErrorMessage } from '../../../components/ErrorMessage/ErrorMessage';
 
 import './view.styl';
+import { Waveform } from '../../../lib/AudioUltra';
+import { Visualizer } from '../../../lib/AudioUltra/Visual/Visualizer';
 
 interface AudioUltraProps {
   item: any;
@@ -60,10 +62,21 @@ const AudioUltraView: FC<AudioUltraProps> = ({ item }) => {
     autoPlayNewSegments: true,
   });
 
+  const seekVal = () =>{
+    let val = -1;
+    return (newVal:number|undefined) => {
+      if(newVal)
+        val = newVal;
+      return val;
+    };
+  };
+
   useEffect(() => {
     const hotkeys = Hotkey('Audio', 'Audio Segmentation');
 
     waveform.current?.load();
+
+    const seekStart = seekVal();
 
     const updateBeforeRegionDraw = (regions: Regions) => {
       const regionColor = item.getRegionColor();
@@ -133,6 +146,58 @@ const AudioUltraView: FC<AudioUltraProps> = ({ item }) => {
 
     hotkeys.addNamed('region:delete-all', () => {
       waveform.current?.regions.clearSegments();
+    });
+
+    hotkeys.addNamed('region:start-stop-htk', () => {
+      // console.log("item", item);
+      // console.log("item", {...item});
+      // console.log("item env", getEnv(item));
+      // console.log("waveform?.current?.getCurrentTime", waveform?.current?.getCurrentTime());
+      // console.log("waveform?.current?.getCurrentTime", waveform?.current?.getCurrentTime());
+      // console.log("waveform", {...waveform});
+      // console.log("waveform", {...waveform.current});
+      // console.log("item.seek", item.seek);
+      const existingSeek = seekStart(undefined);
+      const seekTime = Number(waveform?.current?.getCurrentTime()) ?? 0;
+      // console.log("existingSeek", existingSeek);
+      // console.log("seekTime", seekTime);
+      // console.log("seekTime == existingSeek", seekTime == existingSeek);
+      // console.log("region:start-stop-htk key pressed!");
+        if(existingSeek == -1){
+        // console.log("should save current seek value as region start");
+        //save current seek value as region start
+        seekStart(seekTime);
+      } else {//if (controls.htkRegionStart && !htkRegionEnd){
+        // console.log("should save current seek value as region end");
+        if(seekTime == existingSeek) {
+          // Reset seek variable and return
+          seekStart(-1);
+          return;
+        }
+        // save current seek value as region end
+        //Create new region
+        const seekTimeEnd = Number(waveform?.current?.getCurrentTime()) ?? 0;
+        const labels = item.activeState?.selectedValues();
+        // waveform.current?.regions?.addRegionKey(
+        //    existingSeek,
+        //    seekTimeEnd,
+        //   labels
+        // );
+        const newRegion = new Region(
+          {
+            start:existingSeek,
+            end:seekTimeEnd,
+            labels:labels,
+            color: waveform.current?.regions.drawingColor?.toString(),
+          },
+          waveform.current as Waveform,
+          waveform.current?.visualizer as Visualizer,
+          waveform.current?.regions as Regions
+          );
+          waveform.current?.regions.addRegionKey(newRegion);
+        // Reset seek value
+        seekStart(-1);
+      }
     });
 
     return () => {

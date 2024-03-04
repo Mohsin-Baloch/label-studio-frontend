@@ -165,6 +165,8 @@ export default types
     queueTotal: types.optional(types.number, 0),
 
     queuePosition: types.optional(types.number, 0),
+    /**Start Seek position used to create regions on audio with hotkey */
+    htkRegionStart: types.optional(types.number, 0),
   })
   .preProcessSnapshot((sn) => {
     // This should only be handled if the sn.user value is an object, and converted to a reference id for other
@@ -242,6 +244,10 @@ export default types
   }))
   .actions(self => {
     let appControls;
+
+    function changeHtkRegionStart(val){
+      self.htkRegionStart = val;
+    }
 
     function addLabel(labels = []){
       if(labels.length > 0){
@@ -531,7 +537,8 @@ export default types
       const cs = self.annotationStore;
       
       // self.config = config;
-      cs.updateLabels(config)
+      cs.updateLabels(config);
+      // self.attachHotkeys();
     }
 
     /* eslint-disable no-unused-vars */
@@ -895,6 +902,7 @@ export default types
 
     return {
       addLabel,
+      changeHtkRegionStart,
 
       setFlags,
       addInterface,

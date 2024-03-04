@@ -36,7 +36,7 @@ export class Regions {
   private locked = false;
   private hoveredRegions = new Set<Region | Segment>();
   private defaultColor = rgba('#787878');
-  private drawingColor = rgba('#787878');
+  drawingColor = rgba('#787878');
   private labels: string[] | undefined;
   private createable = true;
   private updateable = true;
@@ -138,6 +138,13 @@ export class Regions {
 
     return region;
   }
+
+  addRegionKey(region:Region){
+    this.regions.push(region);
+    this.waveform.invoke('regionCreated',[region]);
+    // this.redraw();
+    return region;
+  };
 
   findRegion(id: string) {
     return this.regions.find(region => region.id === id);

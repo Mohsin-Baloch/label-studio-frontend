@@ -41,8 +41,8 @@ const View: TimelineView<typeof Controls> = {
     leftOffset: 150,
     skipToBeginning: 'video:rewind',
     skipToEnd: 'video:fastforward',
-    hopBackward: 'video:hop-backward',
-    hopForward: 'video:hop-forward',
+    hopBackward: 'media:hop-backward',
+    hopForward: 'media:hop-forward',
   },
 };
 

@@ -111,6 +111,10 @@
     "mac": "command+d",
     "description": "Duplicate selected region"
   },
+  "region:start-stop-htk": {
+    "key": "w",
+    "description": "Create regions by key"
+  },
   "segment:delete": {
     "key": "delete",
     "description": "Delete selected region"
@@ -120,12 +124,20 @@
     "description": "Play/pause"
   },
   "media:step-backward": {
-    "key": "alt+left",
+    "key": "q",
     "description": "Go one step back"
   },
   "media:step-forward": {
-    "key": "alt+right",
+    "key": "e",
     "description": "Go one step forward"
+  },
+  "media:hop-backward": {
+    "key": "shift+q",
+    "description": "Hop Backward"
+  },
+  "media:hop-forward": {
+    "key": "shift+e",
+    "description": "Hop Forward"
   },
   "video:keyframe-backward": {
     "key": "ctrl+alt+left",

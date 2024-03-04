@@ -375,7 +375,7 @@ export const Hotkey = (
      */
     makeComb() {
       const prefix = null;
-      const st = '1234567890qwetasdfgzxcvbyiopjklnm';
+      const st = '1234567890tasdfgzxcvbyiopjklnm';
       const combs = st.split('');
 
       for (let i = 0; i <= combs.length; i++) {

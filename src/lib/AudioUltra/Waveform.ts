@@ -181,7 +181,7 @@ interface WaveformEventTypes extends RegionsGlobalEvents, RegionGlobalEvents {
 export class Waveform extends Events<WaveformEventTypes> {
   private src: string;
   private media!: MediaLoader;
-  private visualizer!: Visualizer;
+  visualizer!: Visualizer;
   private timeline!: Timeline;
   private focusTimeout: any = null;
 
@@ -211,6 +211,14 @@ export class Waveform extends Events<WaveformEventTypes> {
 
     this.init();
   }
+
+  public getCurrentTime() {
+    return this.currentTime;
+  };
+
+  public getDuration(){
+    return this.duration;
+  };
 
   private init() {
     this.media = new MediaLoader(this, {
