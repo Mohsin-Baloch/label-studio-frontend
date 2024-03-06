@@ -22,10 +22,8 @@ Currently the modified frontend provides following features:
 		</Labels>
 		<Audio name="audio" value="$video" sync="video" zoom="true" speed="true" volume="true"/>
 	</View>
-
 ```
-
-		This is only one time process when the project is newely created.
+	* This is only one time process when the project is newly created.
 
 -  ### Frame by frame shortcut keys
 
@@ -52,6 +50,6 @@ Currently the modified frontend provides following features:
 ```
 -  *If due to cache or any other reason it doesn't build the images then you can comment out the following line in `docker-compose.yml` file.
 ```yml
-	image: heartexlabs/label-studio:latest
+image: heartexlabs/label-studio:latest
  ```
  
