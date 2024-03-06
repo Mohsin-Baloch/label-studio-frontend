@@ -48,8 +48,5 @@ Currently the modified frontend provides following features:
 ```
 	docker compose up --build
 ```
--  *If due to cache or any other reason it doesn't build the images then you can comment out the following line in `docker-compose.yml` file.
-```yml
-image: heartexlabs/label-studio:latest
- ```
+
  
