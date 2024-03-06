@@ -156,6 +156,7 @@ function configureApplication(params) {
     settings: params.settings || {},
     messages: { ...Messages, ...params.messages },
     onSubmitAnnotation: params.onSubmitAnnotation ? params.onSubmitAnnotation : External.onSubmitAnnotation,
+    onUpdateProject: params.onUpdateProject ? params.onUpdateProject : External.onUpdateProject,
     onUpdateAnnotation: params.onUpdateAnnotation ? params.onUpdateAnnotation : External.onUpdateAnnotation,
     onDeleteAnnotation: params.onDeleteAnnotation ? params.onDeleteAnnotation : External.onDeleteAnnotation,
     onSkipTask: params.onSkipTask ? params.onSkipTask : External.onSkipTask,

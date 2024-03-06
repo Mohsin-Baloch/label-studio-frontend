@@ -59,6 +59,7 @@ function configureApplication(params) {
     messages: { ...Messages, ...params.messages },
 
     // callbacks and event handlers
+    onUpdateProject: params.onUpdateProject ? ouCB : External.onUpdateProject,
     onSubmitAnnotation: params.onSubmitAnnotation ? osCB : External.onSubmitAnnotation,
     onUpdateAnnotation: params.onUpdateAnnotation ? ouCB : External.onUpdateAnnotation,
     onDeleteAnnotation: params.onDeleteAnnotation ? odCB : External.onDeleteAnnotation,

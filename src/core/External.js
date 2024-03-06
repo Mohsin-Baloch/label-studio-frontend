@@ -16,6 +16,11 @@ function onUpdateAnnotation() {}
 function onDeleteAnnotation() {}
 
 /**
+ * Callback on update project
+ */
+function onUpdateProject() {}
+
+/**
  * Callback on skip task
  */
 function onSkipTask() {}
@@ -77,6 +82,7 @@ function onNextTask(nextTaskId) {}
 function onPrevTask(prevTaskId) {}
 
 export default {
+  onUpdateProject,
   onDeleteAnnotation,
   onEntityCreate,
   onEntityDelete,

@@ -70,13 +70,16 @@ const AudioUltraView: FC<AudioUltraProps> = ({ item }) => {
       return val;
     };
   };
+  const seekStart = seekVal();
+
+  const [isRegionRecording, setIsRegionRecording] = useState(false);
+  const [regionStart, setRegionStart] = useState(-1);
 
   useEffect(() => {
     const hotkeys = Hotkey('Audio', 'Audio Segmentation');
 
     waveform.current?.load();
 
-    const seekStart = seekVal();
 
     const updateBeforeRegionDraw = (regions: Regions) => {
       const regionColor = item.getRegionColor();
@@ -149,29 +152,17 @@ const AudioUltraView: FC<AudioUltraProps> = ({ item }) => {
     });
 
     hotkeys.addNamed('region:start-stop-htk', () => {
-      // console.log("item", item);
-      // console.log("item", {...item});
-      // console.log("item env", getEnv(item));
-      // console.log("waveform?.current?.getCurrentTime", waveform?.current?.getCurrentTime());
-      // console.log("waveform?.current?.getCurrentTime", waveform?.current?.getCurrentTime());
-      // console.log("waveform", {...waveform});
-      // console.log("waveform", {...waveform.current});
-      // console.log("item.seek", item.seek);
       const existingSeek = seekStart(undefined);
       const seekTime = Number(waveform?.current?.getCurrentTime()) ?? 0;
-      // console.log("existingSeek", existingSeek);
-      // console.log("seekTime", seekTime);
-      // console.log("seekTime == existingSeek", seekTime == existingSeek);
-      // console.log("region:start-stop-htk key pressed!");
         if(existingSeek == -1){
-        // console.log("should save current seek value as region start");
-        //save current seek value as region start
         seekStart(seekTime);
-      } else {//if (controls.htkRegionStart && !htkRegionEnd){
-        // console.log("should save current seek value as region end");
-        if(seekTime == existingSeek) {
+        setRegionStart(seekTime);
+      } else {
+        if(seekTime == existingSeek || seekTime < existingSeek) {
           // Reset seek variable and return
           seekStart(-1);
+          setRegionStart(-1);
+          setIsRegionRecording(seekStart(undefined) >-1)
           return;
         }
         // save current seek value as region end
@@ -197,7 +188,9 @@ const AudioUltraView: FC<AudioUltraProps> = ({ item }) => {
           waveform.current?.regions.addRegionKey(newRegion);
         // Reset seek value
         seekStart(-1);
+        setRegionStart(-1);
       }
+      setIsRegionRecording(seekStart(undefined) >-1)
     });
 
     return () => {
@@ -210,6 +203,7 @@ const AudioUltraView: FC<AudioUltraProps> = ({ item }) => {
       {item.errors?.map((error: any, i: any) => (
         <ErrorMessage key={`err-${i}`} error={error} />
       ))}
+      {isRegionRecording && <div>Recording Region from {regionStart.toFixed(2)} seconds</div>}
       <div ref={el => (rootRef.current = el)}></div>
       <Controls
         position={controls.currentTime}

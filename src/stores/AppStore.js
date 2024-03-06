@@ -532,13 +532,20 @@ export default types
       cs.initRoot(self.config)
     }
 
-    function reAssignConfigLbl(config){
+    async function reAssignConfigLbl(config){
       // destroy(self.annotationStore.root);
       const cs = self.annotationStore;
       
       // self.config = config;
       cs.updateLabels(config);
       // self.attachHotkeys();
+    }
+
+    async function saveNewConfig(rootConfig){
+      if(rootConfig && rootConfig.trim() !== ""){
+        return await getEnv(self).events.invoke('updateProject',rootConfig);
+        
+      }
     }
 
     /* eslint-disable no-unused-vars */
@@ -903,6 +910,7 @@ export default types
     return {
       addLabel,
       changeHtkRegionStart,
+      saveNewConfig,
 
       setFlags,
       addInterface,

@@ -1,139 +1,57 @@
-# Label Studio Frontend &middot; ![GitHub](https://img.shields.io/github/license/heartexlabs/label-studio?logo=heartex) ![build](https://github.com/heartexlabs/label-studio-frontend/workflows/Build%20and%20Test/badge.svg) ![npm audit](https://github.com/heartexlabs/label-studio-frontend/actions/workflows/npm_audit.yml/badge.svg)
- ![GitHub release](https://img.shields.io/github/v/release/heartexlabs/label-studio-frontend?include_prereleases) &middot; :sunny:
+# Modified Front-End
 
-[Website](https://labelstud.io/) • [Docs](https://labelstud.io/guide) • [Twitter](https://twitter.com/heartexlabs) • [Join Slack Community <img src="https://go.heartex.net/docs/images/slack-mini.png" width="18px"/>](https://slack.labelstud.io)
+## Features Implemented
 
-<br/>
+Currently the modified frontend provides following features:
 
-**Label Studio is an open-source, configurable data annotation tool. :v:**
+-  ### Allow labels to be filtered and selected
 
-Frontend, as its name suggests, is the frontend library developed using React and mobx-state-tree, distributed as an NPM package. You can include it in your applications and provide data annotation support to your users. It can be granularly customized and extended.
+	This feature allows users to select `labels` dynamically on the `video-audio` page. There is a new button added which says 'Add Label'. Upon clicking the button, a modal will open. The modal contains a searchable, `select` field. Users can search and select multiple labels through the field and after the selection, click on 'Apply Selection'. This will override current config and selected labels shall be available to be selected for region drawing.
 
-<br/>
+	### NOTE: 
+	##### To get the above feature working, following steps must be followed and ensured:
 
-## Install
+*	When Creating a new `Project`, in the project `Settings` select `Labeling Interface` and go to `code` display of the interface. In the code section paste following code and hit `save`:
 
-```bash
-npm install @heartexlabs/label-studio
+```xml
+	<View>
+		<Header value="Video timeline segmentation via Audio sync trick"/>
+		<Video name="video" value="$video" sync="audio"></Video>
+		<Labels name="tricks" toName="audio" choice="multiple">
+			<Label value=""/>
+		</Labels>
+		<Audio name="audio" value="$video" sync="video" zoom="true" speed="true" volume="true"/>
+	</View>
+
 ```
 
-## Usage
+		This is only one time process when the project is newely created.
 
-**With Webpack**
+-  ### Frame by frame shortcut keys
 
-```js
-import LabelStudio from '@heartexlabs/label-studio';
-import 'label-studio/build/static/css/main.css';
+	This feature enables users to seek through the `video` seek bar 'Frame by Frame'. Users can go one frame forward by pressing `e`, and can go one frame backward by pressing `q` on a video. If a `hop` is required then users can hold `Shift` key and press `q` or `e` to go `10 Frames` backwards or forwards respectively. NOTE: users can change the default `hope` size from the settings menu, available in the bottom bar.
+
+-  ### Shortcut keys for start and end region
+
+	This feature enables users to start a region on the audio timeline and then moving forward from the starting point, when desired, end the region; by using shortcut key instead on mouse drawing. To achieve that, users can start a region by pressing `w` key and then move the seek cursor on desired postion and again press `w` key to mark the region end. As soon as region end is marked, the region will be drawn, just as normally as mouse drag draws.
+
+
+# Docker Setup Guide
+
+- Make `mydata` directory at root of project  
+```sh
+	mkdir mydata
 ```
-
-**With UNPKG.com**
-
-```xhtml
-<!-- Include Label Studio stylesheet -->
-<link href="https://unpkg.com/@heartexlabs/label-studio@1.8.0/build/static/css/main.css" rel="stylesheet">
-
-<!-- Create the Label Studio container -->
-<div id="label-studio"></div>
-
-<!-- Include the Label Studio library -->
-<script src="https://unpkg.com/@heartexlabs/label-studio@1.8.0/build/static/js/main.js"></script>
+- Change ownership of `mydata` directory recursively  
+```sh
+	sudo chown -R 1001:root mydata
 ```
-
-**Initialization**
-
-```xhtml
-<!-- Initialize Label Studio -->
-<script>
-  var labelStudio = new LabelStudio('label-studio', {
-    config: `
-      <View>
-        <Image name="img" value="$image"></Image>
-        <RectangleLabels name="tag" toName="img">
-          <Label value="Hello"></Label>
-          <Label value="World"></Label>
-        </RectangleLabels>
-      </View>
-    `,
-
-    interfaces: [
-      "panel",
-      "update",
-      "submit",
-      "controls",
-      "side-column",
-      "annotations:menu",
-      "annotations:add-new",
-      "annotations:delete",
-      "predictions:menu",
-    ],
-
-    user: {
-      pk: 1,
-      firstName: "James",
-      lastName: "Dean"
-    },
-
-    task: {
-      annotations: [],
-      predictions: [],
-      id: 1,
-      data: {
-        image: "https://htx-misc.s3.amazonaws.com/opensource/label-studio/examples/images/nick-owuor-astro-nic-visuals-wDifg5xc9Z4-unsplash.jpg"
-      }
-    },
-
-    onLabelStudioLoad: function(LS) {
-      var c = LS.annotationStore.addAnnotation({
-        userGenerate: true
-      });
-      LS.annotationStore.selectAnnotation(c.id);
-    }
-  });
-</script>
+- Run docker compose  
 ```
-
-## Development
-
-1. Clone the repository
-   ```bash
-   git clone git@github.com:heartexlabs/label-studio-frontend.git
-   # or: git clone https://github.com/heartexlabs/label-studio-frontend.git
-   cd label-studio-frontend
-   ```
-
-2. Install required dependencies
-   ```bash
-   npm install
-   ```
-
-3. Start the development server
-   ```bash
-   npm run start
-   ```
-
-4. Check different ways to initiate the development server config & task data in `src/env/development.js`, changing the `data` variable is a good place to start.
-
-5. After you make changes and ready to use it in production, you need to create a production build
-   ```bash
-   npm run build-bundle
-   ```
-   Now you have one .js file and one .css file in the `build/static/` directory
-
-## Label Studio for Teams, Startups, and Enterprises :office:
-
-Label Studio for Teams is our enterprise edition (cloud & on-prem), that includes a data manager, high-quality baseline models, active learning, collaborators support, and more. Please visit the [website](https://www.heartex.com/) to learn more.
-
-## Ecosystem
-
-| Project | Description |
-|-|-|
-| [label-studio](https://github.com/heartexlabs/label-studio) | Server part, distributed as a pip package |
-| label-studio-frontend | Frontend part, written in JavaScript and React, can be embedded into your application |
-| [label-studio-converter](https://github.com/heartexlabs/label-studio-converter) | Encode labels into the format of your favorite machine learning library |
-| [label-studio-transformers](https://github.com/heartexlabs/label-studio-transformers) | Transformers library connected and configured for use with label studio |
-
-## License
-
-This software is licensed under the [Apache 2.0 LICENSE](/LICENSE) © [Heartex](https://www.heartex.com/). 2020
-
-<img src="https://github.com/heartexlabs/label-studio/blob/master/images/opossum_looking.png?raw=true" title="Hey everyone!" height="140" width="140" />
+	docker compose up --build
+```
+-  *If due to cache or any other reason it doesn't build the images then you can comment out the following line in `docker-compose.yml` file.
+```yml
+	image: heartexlabs/label-studio:latest
+ ```
+ 

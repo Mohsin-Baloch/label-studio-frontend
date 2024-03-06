@@ -192,28 +192,76 @@ const dummyData = [
     { id: 10, value: 'frontsquat-down' },
 ];
 
-const HtxLabels = inject('store')(observer(({ item, store }) => {
+const getDefaultOptions = (config) => {
+  const parser = new DOMParser();
+  const xmlDoc = parser.parseFromString(config, 'application/xml');
+  const viewNode = xmlDoc.childNodes[0];
+  // Find the 'Labels' node
+  let labelsNode;
+  for (let i = 0; i < viewNode.childNodes.length; i++) {
+    if (viewNode.childNodes[i].nodeName === 'Labels') {
+      labelsNode = viewNode.childNodes[i];
+      break;
+    }
+  }
+
+  // Check if 'Labels' node is found
+  if (labelsNode) {
+    const labelValues = [];
+    // Iterate over the children of 'Labels'
+    for (let j = 0; j < labelsNode.childNodes.length; j++) {
+      let childNode = labelsNode.childNodes[j];
+      const val = childNode?.attributes?.getNamedItem('value');
+      if(val){
+        labelValues.push(val?.value?.toString()?.toLowerCase())
+      }
+    }
+    return labelValues;
+  } else {
+    console.error('Labels node not found in the XML structure.');
+    return [];
+  }
+};
+
+const HtxLabels = inject(['store'])(observer(({ item, store, AppStore, lsf}) => {
   const {
+    config,
     labelsData,
     addLabel,
-    reAssignConfigLbl
+    reAssignConfigLbl,
+    saveNewConfig,
   } = store;
 
   const [openLblSelection, setOpenLblSelection] = useState(false);
   const [labelsSelection, setLabelsSelection] = useState([...(labelsData).map(i => (i.value.toLowerCase))]);
 
-  const getUpdatedConfigLbl = (labels) =>{
+  const getUpdatedConfigLbl = (labels) => {
     // return `<Label key="${labels[labels.length -1].id}" value="${labels[labels.length -1].value}"/>`;
     return `<Labels name="tricks" toName="audio" choice="multiple">
         ${ labels.map(label => ( `<Label key="${label.id}" value="${label.value}"/>` ))}
       </Labels>`;
-  }
+  };
+
+  const getUpdatedRootConfig = lblConfig => {
+    return `
+    <View>
+      <Header value="Video timeline segmentation via Audio sync trick"/>
+      <Video name="video" value="$video" sync="audio"></Video>
+      ${lblConfig}
+      <Audio name="audio" value="$video" sync="video" zoom="true" speed="true" volume="true"/>
+    </View>
+    `;
+  };
+
   useEffect(() => {
     if(labelsData.length > 0) {
       const newConfigLbl = getUpdatedConfigLbl(labelsData);
-      reAssignConfigLbl(newConfigLbl)
+      reAssignConfigLbl(newConfigLbl);
+    }else{
+      const existingLabels = getDefaultOptions(config);
+      setLabelsSelection([...existingLabels]);
     }
-  }, [labelsData.length])
+  }, [labelsData.length]);
 
   const getLabelSelectOptions = (data) => {
     return data.map(item => ({ key: item.id, value: item.value.toLowerCase(), label: item.value }));
@@ -225,14 +273,17 @@ const HtxLabels = inject('store')(observer(({ item, store }) => {
     // addLabel();
     setOpenLblSelection(true);
   };
-  const handleApplySelection = () => {
+  const handleApplySelection = async() => {
     const labels = [];
     for(let i=0; i< labelsSelection.length; i++){
       const item = dummyData.find(itm => itm.value.toLowerCase() === labelsSelection[i] );
       if (item)
       labels.push(item);
     }
-    addLabel(labels);
+    const newConfigLbl = getUpdatedConfigLbl(labels);
+    const saved = await saveNewConfig(getUpdatedRootConfig(newConfigLbl));
+    if(saved)
+      addLabel(labels);
     setOpenLblSelection(false);
   };
   const handleDiscardSelection = () =>{
