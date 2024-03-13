@@ -181,15 +181,12 @@ const customStyles = {
 }
 
 const dummyData = [
-    { id: 1, value: 'pull-up' },
-    { id: 2, value: 'push up' },
-    { id: 3, value: 'push down' },
-    { id: 4, value: 'deadlift-up' },
-    { id: 5, value: 'deadlift-down' },
-    { id: 6, value: 'benchpress-up' },
-    { id: 7, value: 'benchpress-down' },
-    { id: 9, value: 'frontsquat-up' },
-    { id: 10, value: 'frontsquat-down' },
+    { id: 1, value: 'air_squat.down' },
+    { id: 2, value: 'air_squat.up' },
+    { id: 3, value: 'push_press.down' },
+    { id: 4, value: 'push_press.up' },
+    { id: 5, value: 'power_clean.up' },
+    { id: 6, value: 'power_clean.down' },
 ];
 
 const getDefaultOptions = (config) => {

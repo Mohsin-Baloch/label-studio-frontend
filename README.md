@@ -31,7 +31,7 @@ Currently the modified frontend provides following features:
 
 -  ### Shortcut keys for start and end region
 
-	This feature enables users to start a region on the audio timeline and then moving forward from the starting point, when desired, end the region; by using shortcut key instead on mouse drawing. To achieve that, users can start a region by pressing `w` key and then move the seek cursor on desired postion and again press `w` key to mark the region end. As soon as region end is marked, the region will be drawn, just as normally as mouse drag draws.
+	This feature enables users to start a region on the audio timeline and then moving forward from the starting point, when desired, end the region; by using shortcut key instead on mouse drawing. To achieve that, users can start a region by pressing `w` key and then move the seek cursor on desired position and again press `w` key to mark the region end. As soon as region end is marked, the region will be drawn, just as normally as mouse drag draws.
 
 
 # Docker Setup Guide
