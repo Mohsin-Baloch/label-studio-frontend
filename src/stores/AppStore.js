@@ -46,6 +46,9 @@ export default types
      * Custom array
      */
     labelsData: types.array(tagsObj),
+    labelOptions: types.array(tagsObj),
+    labelOptLoading: types.maybeNull(types.boolean),
+    labelOptErrMsg: types.maybeNull(types.string),
     /**
      * Task with data, id and project
      */
@@ -248,6 +251,24 @@ export default types
     function changeHtkRegionStart(val){
       self.htkRegionStart = val;
     }
+
+    const fetchLabelOptions = flow(function* (){
+      self.labelOptions = [];
+      self.labelOptLoading = true;
+      self.labelOptErrMsg = "";
+      try {
+        // ... yield can be used in async/await style
+        const resp = yield fetch('https://l25miqojkb.execute-api.us-east-1.amazonaws.com/dev/get_labels')
+        const data = yield resp.json();
+        self.labelOptions = data.body;
+    } catch (error) {
+        // ... including try/catch error handling
+        console.error("Failed to fetch projects", error)
+        self.labelOptErrMsg = "Unable to fetch Labels"
+    }
+    self.labelOptLoading = false;
+    return self.labelOptions.length;
+    })
 
     function addLabel(labels = []){
       if(labels.length > 0){
@@ -908,6 +929,7 @@ export default types
     }
 
     return {
+      fetchLabelOptions,
       addLabel,
       changeHtkRegionStart,
       saveNewConfig,

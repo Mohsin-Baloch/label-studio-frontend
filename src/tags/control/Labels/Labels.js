@@ -154,13 +154,19 @@ const customStyles = {
     alignItems:'flex-start'
   },
   labelBtnContainer:{ minWidth:'40px', margin:'1rem' },
+  refreshBtnContainer:{ 
+    width:'100%', 
+    margin:'0.15rem auto', 
+    display: "flex",
+    justifyContent:'end', 
+  },
   flexCol: {
     display: "flex",
     flexDirection: "column",
     justifyContent:'space-between',
     alignItems:'center',
     height: "100%",
-    minHeight: "25rem"
+    minHeight: "20rem"
   },
   formSelect: {
     padding: "1px",
@@ -220,13 +226,17 @@ const getDefaultOptions = (config) => {
   }
 };
 
-const HtxLabels = inject(['store'])(observer(({ item, store, AppStore, lsf}) => {
+const HtxLabels = inject(['store'])(observer(({ item, store}) => {
   const {
     config,
     labelsData,
     addLabel,
     reAssignConfigLbl,
     saveNewConfig,
+    fetchLabelOptions,
+    labelOptions,
+    labelOptLoading,
+    labelOptErrMsg,
   } = store;
 
   const [openLblSelection, setOpenLblSelection] = useState(false);
@@ -249,6 +259,10 @@ const HtxLabels = inject(['store'])(observer(({ item, store, AppStore, lsf}) => 
     </View>
     `;
   };
+
+  useEffect(() => {
+    fetchLabelOptions();
+  },[]);
 
   useEffect(() => {
     if(labelsData.length > 0) {
@@ -293,17 +307,23 @@ const HtxLabels = inject(['store'])(observer(({ item, store, AppStore, lsf}) => 
       {Tree.renderChildren(item, item.annotation)}
       </Block>
       <div style={customStyles.labelBtnContainer}>
-        <Button type='primary' ghost onClick={handleAddLabel}>Add Label</Button>
+        <Button type='primary' ghost onClick={handleAddLabel} disabled={labelOptLoading} loading={labelOptLoading | undefined}>{labelOptLoading ? "Fetching Labels" : "Add Label"}</Button>
       </div>
       <InstructionsModal
         visible={openLblSelection}
         onCancel={() => setOpenLblSelection(false)}
         title="Labeling Selection"
       >
+        <div style={customStyles.refreshBtnContainer}>
+          <Button type='primary' ghost onClick={() => fetchLabelOptions()} disabled={labelOptLoading} loading={labelOptLoading | undefined}>{labelOptLoading ? "Fetching Labels" : "Refresh Options"}</Button>
+        </div>
         <div style={customStyles.flexCol}>
-          <div style={{ width: '100%', textAlign:'left'}}>
+          {labelOptErrMsg?.trim() != "" ?<div>
+            <h5>{labelOptErrMsg}</h5>
+          </div> : <div style={{ width: '100%', textAlign:'left'}}>
             <label>Select labels to apply:</label>
             <Select
+              disabled={labelOptLoading}
               mode="multiple"
               size={'middle'}
               placeholder="Please select labels"
@@ -313,12 +333,13 @@ const HtxLabels = inject(['store'])(observer(({ item, store, AppStore, lsf}) => 
                 width: '100%',
               }}
               value={labelsSelection}
-              options={getLabelSelectOptions(dummyData)}
+              options={getLabelSelectOptions(labelOptions)}
+              listHeight={4 * 32} //convert no of rows * 32px ; default row height
             />
-          </div>
+          </div>}
           <div style={customStyles.modalActionContainer}>
             <Button danger style={customStyles.actionBtn} onClick={handleDiscardSelection}>Discard selection</Button>
-            <Button type='primary' style={customStyles.actionBtn} onClick={handleApplySelection}>Apply selection</Button>
+            <Button type='primary' style={customStyles.actionBtn} disabled={labelOptLoading || labelOptErrMsg?.trim() != ""} onClick={handleApplySelection}>Apply selection</Button>
           </div>
         </div>
       </InstructionsModal>
