@@ -3,7 +3,7 @@ import * as d3 from 'd3';
 import { inject, observer } from 'mobx-react';
 import { getEnv, getRoot, getType, types } from 'mobx-state-tree';
 import throttle from 'lodash.throttle';
-import { Spin } from 'antd';
+import { Button, Input, Spin } from 'antd';
 
 import ObjectBase from './Base';
 import ObjectTag from '../../components/Tags/Object';
@@ -557,7 +557,7 @@ function useWidth() {
 }
 
 // class TimeSeriesOverviewD3 extends React.Component {
-const Overview = observer(({ item, data, series }) => {
+const Overview = inject('store')(observer(({ item, data, series, store }) => {
   const regions = item.regs;
   const [ref, fullWidth, node] = useWidth();
 
@@ -793,10 +793,87 @@ const Overview = observer(({ item, data, series }) => {
     node && drawRegions(regions);
   });
 
+
+  function moveBrushByOnePx() {
+    // Get the current selection of the brush
+    const currentSelection = d3.brushSelection(gb.current.node());
+
+    // Calculate new selection range by adding 1px to both start and end positions
+    const newStart = currentSelection[0] + 1;
+    const newEnd = currentSelection[1] + 1;
+    const newSelection = [newStart, newEnd];
+
+    // Move the brush programmatically
+    gb.current.call(brush.move, newSelection);
+    prevBrush.current = [newStart, newEnd];
+    upd([newStart, newEnd]);
+}
+
+const moveOnMs = (timeInMs) => {
+  if (!timeInMs) return; // If timeInMs is not provided, return without doing anything
+  if (timeInMs) {
+    const prev = prevBrush.current;
+    const currentSelection = d3.brushSelection(gb.current.node());
+    const diff = currentSelection[1] - currentSelection[0];
+    const newX1 = currentSelection[0]
+    const newX2 = currentSelection[1]
+    let [x1, x2] = d3.event?.selection ?? [newX1, newX2];
+    const overviewWidth = x2 - x1;
+    const xPosition = x(timeInMs);
+    const half = overviewWidth /2;
+    const maxTime = data[idX][data[idX].length -1];
+    const maxEdge = x(maxTime)
+    if (xPosition > half ) {
+      x1 = xPosition - half;
+      x2 = xPosition + half;
+    } else if (xPosition > 0) {
+      x1 = 0;
+      x2 = overviewWidth;
+    }
+    if (x2 >= maxEdge || timeInMs > maxTime) {
+      x1 = maxEdge - overviewWidth;
+      x2 = maxEdge;
+    }
+    // let [x1, x2] = [0, 205];
+    let start = +x.invert(x1);
+    let end = +x.invert(x2);
+
+
+    // if overview is left intact do nothing
+    if (prev[0] === x1 && prev[1] === x2) {
+      // TODO: please, rewrite this step to avoid empty blocks
+    }
+
+    // if overview was moved; precision comparison for floats
+    else if (prev[0] !== x1 && prev[1] !== x2) {
+      const mid = (start + end) / 2;
+
+      start = mid - item.zoomedRange / 2;
+      end = mid + item.zoomedRange / 2;
+      gb.current.call(brush.move, [x1, x2]);
+    }
+    prevBrush.current = [x1, x2];
+    upd([start, end]);
+  }
+}
+
+
+  const [msToMove, setMsToMove] = React.useState(0);
+
   item.regs.map(r => fixMobxObserve(r.start, r.end, r.selected, r.hidden, r.style?.fillcolor));
 
-  return <div className="htx-timeseries-overview" ref={ref} />;
-});
+  return <React.Fragment>
+    <div className="htx-timeseries-overview" ref={ref} />
+    <div>
+      <Input name='ms' value={msToMove} onChange={(e) => setMsToMove(e.target.value)} min={0} title='MS to move' />
+      <Button onClick={() =>{
+        store.setTimeMsToMove(Number(msToMove)) 
+        moveOnMs(store.msToMove); 
+        // brushed(); 
+        }}>Move to MS</Button>
+    </div>
+  </React.Fragment>;
+}));
 
 const HtxTimeSeriesViewRTS = ({ item }) => {
   const ref = React.createRef();

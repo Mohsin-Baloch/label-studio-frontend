@@ -1,5 +1,5 @@
 import React from 'react';
-import { observer } from 'mobx-react';
+import { inject, observer } from 'mobx-react';
 import { getRoot, types } from 'mobx-state-tree';
 
 import * as d3 from 'd3';
@@ -12,6 +12,7 @@ import { errorBuilder } from '../../../core/DataValidator/ConfigValidator';
 import { TagParentMixin } from '../../../mixins/TagParentMixin';
 import { FF_DEV_3391, FF_LSDV_4881, isFF } from '../../../utils/feature-flags';
 import { fixMobxObserve } from '../../../utils/utilities';
+import { autorun } from 'mobx';
 
 /**
  * Channel tag can be used to label time series data
@@ -117,6 +118,12 @@ class ChannelD3 extends React.Component {
   trackerTime;
   trackerValue;
 
+  seeker;
+  seekerX = 0;
+  seekerPoint;
+  seekerTime;
+  seekerValue;
+
   extent = [0, 0];
 
   // if there is a huge data — use sliced data to optimize render
@@ -137,6 +144,8 @@ class ChannelD3 extends React.Component {
   state = {
     width: 840,
   };
+
+  reactionDisposer;
 
   changeWidth = () => {
     const offsetWidth = this.ref.current.offsetWidth;
@@ -422,6 +431,47 @@ class ChannelD3 extends React.Component {
     this.main.on('mousemove', onHover);
   };
 
+  updateSeeker = (timeMs) => {
+    const { width } = this.state;
+    const timeWidth = this.x(timeMs);
+
+    if (timeWidth < 0 || timeWidth > width) return;
+    const [dataX, dataY] = this.stick(timeWidth);
+
+    this.seekerX = timeMs;
+    this.seeker.attr('transform', `translate(${this.x(timeMs) + 0.5},0)`);
+    // this.seekerTime.text(`${this.formatTime(dataX)}${brushWidth === 0 ? '' : ` [${this.formatDuration(brushWidth)}]`}`);
+    // this.seekerValue.text(this.formatValue(dataY) + ' ' + this.props.item.units);
+    // this.seekerPoint.attr('cy', this.y(dataY));
+    this.seeker.attr('text-anchor', timeMs > width - 100 ? 'end' : 'start');
+  };
+
+  renderSeeker = () => {
+    this.seeker = this.main.append('g').style('pointer-events', 'none');
+    this.seekerValue = this.seeker
+      .append('text')
+      .attr('font-size', 10)
+      .attr('fill', '#222');
+    this.seekerTime = this.seeker
+      .append('text')
+      .attr('y', this.height - 1)
+      .attr('font-size', 10)
+      .attr('fill', '#222');
+    this.seekerPoint = this.seeker
+      .append('circle')
+      .attr('cx', 0)
+      .attr('r', 0)
+      .attr('stroke', 'purple')
+      .attr('fill', 'none');
+    this.seeker
+      .append('line')
+      .attr('y1', this.height)
+      .attr('y2', 0)
+      .attr('stroke', '#222')
+      .attr('stroke-width', '3')
+      .attr('stroke-opacity', '0.7');
+  };
+
   renderXAxis = () => {
     const { item } = this.props;
 
@@ -704,6 +754,8 @@ class ChannelD3 extends React.Component {
 
     this.renderTracker();
     this.updateTracker(0); // initial value, will be updated in setRangeWithScaling
+    this.renderSeeker();
+    this.updateSeeker(0);
     this.renderYAxis();
     this.setRangeWithScaling(range);
     this.renderBrushCreator();
@@ -718,10 +770,16 @@ class ChannelD3 extends React.Component {
     this.renderBrushes(this.props.ranges);
 
     window.addEventListener('resize', this.changeWidth);
+
+    this.reactionDisposer = autorun(() => {
+      const store = this.props.store;
+      this.updateSeeker(store.msToMove);
+    });
   }
 
   componentWillUnmount() {
     window.removeEventListener('resize', this.changeWidth);
+    this.reactionDisposer?.();
   }
 
   setRangeWithScaling(range) {
@@ -845,6 +903,7 @@ class ChannelD3 extends React.Component {
     }
 
     this.renderBrushes(this.props.ranges, flushBrushes);
+    this.updateSeeker(this.props.store?.msToMove || -1)
   }
 
   render() {
@@ -855,7 +914,7 @@ class ChannelD3 extends React.Component {
   }
 }
 
-const ChannelD3Observed = observer(ChannelD3);
+const ChannelD3Observed = inject('store')(observer(ChannelD3));
 
 const HtxChannelViewD3 = ({ item }) => {
   if (!item.parent?.dataObj) return null;

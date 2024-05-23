@@ -141,6 +141,8 @@ export default types
      */
     labeledSuccess: types.optional(types.boolean, false),
 
+    msToMove: types.optional(types.number, 0),
+
     /**
      * Show or hide comments section
      */
@@ -250,6 +252,12 @@ export default types
 
     function changeHtkRegionStart(val){
       self.htkRegionStart = val;
+    }
+
+    function setTimeMsToMove (ms) {
+      if (!isNaN(Number(ms))) {
+        self.msToMove = ms;
+      }
     }
 
     const fetchLabelOptions = flow(function* (){
@@ -933,6 +941,7 @@ export default types
       addLabel,
       changeHtkRegionStart,
       saveNewConfig,
+      setTimeMsToMove,
 
       setFlags,
       addInterface,
